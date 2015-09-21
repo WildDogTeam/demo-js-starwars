@@ -60,16 +60,16 @@ var GRID_SIZE = 60;
  */
 var LEADERBOARD_SIZE = 10;
 
-// Firebase connection Stuff
-var firebaseRef = new Firebase("https://mmoasteroids.firebaseio.com");
-var firebaseRefGame = firebaseRef.child('game');
-var firebaseRefLeaderboard = firebaseRef.child('leaderboard');
+// Wilddog connection Stuff
+var wilddogRef = new Wilddog("https://demo-asteroids.wilddogio.com/");
+var wilddogRefGame = wilddogRef.child('game');
+var wilddogRefLeaderboard = wilddogRef.child('leaderboard');
 
 var currentUser = null;
 var currentUserCachedImage = null;
 
 // User login
-firebaseRef.onAuth(function(authData) {
+wilddogRef.onAuth(function(authData) {
   if(authData) {
     // User logged in
     currentUser = {
@@ -78,7 +78,7 @@ firebaseRef.onAuth(function(authData) {
       name: "Guest " + Math.floor(10000 * Math.random()),
       imageUrl: null
     };
-    if(authData.provider == "twitter") {
+    if(authData.provider == "weixin") {
       currentUser.name = authData.twitter.username;
       currentUser.imageUrl =  authData.twitter.cachedUserProfile.profile_image_url_https;
 
@@ -91,7 +91,7 @@ firebaseRef.onAuth(function(authData) {
     currentUser = null;
     
     // If they're not authenticated, auth them anonymously
-    firebaseRef.authAnonymously(function(error, authData) {
+    wilddogRef.authAnonymously(function(error, authData) {
       if (error) {
         console.log("Anonymous login Failed!", error);
       }
@@ -103,7 +103,7 @@ firebaseRef.onAuth(function(authData) {
 
 function updateDisplayName(currentUser) {
   if(currentUser) {
-    if(currentUser.type == "twitter") {
+    if(currentUser.type == "weixin") {
       $('#login').hide();
       $('#my-name').html('<img height=24 src="' + currentUser.imageUrl + '"> @' + currentUser.name);
     } else {
@@ -122,7 +122,7 @@ $(document).ready(function() {
   }
 
   $("#login").click(function() {
-    firebaseRef.authWithOAuthPopup("twitter", function(error, authData) {
+    wilddogRef.authWithOAuthPopup("weixin", function(error, authData) {
       if (error) {
         console.log("Twitter login Failed!", error);
       }
@@ -152,8 +152,8 @@ $(window).keydown(function (event) {
   }
 });
 
-// Add player's ship to Firebase
-var myship = firebaseRefGame.child('players').push();
+// Add player's ship to Wilddog
+var myship = wilddogRefGame.child('players').push();
 
 // Schedule player removal on disconnect
 myship.onDisconnect().remove();
@@ -161,7 +161,7 @@ myship.onDisconnect().remove();
 // Leaderboard stuff
 
 // Display the leaderboard
-var scoreListRef = firebaseRefLeaderboard.child('scoreList');
+var scoreListRef = wilddogRefLeaderboard.child('scoreList');
 var htmlForPath = {};
 
 function handleScoreAdded(scoreSnapshot, lowerScoreName) {
@@ -603,7 +603,7 @@ Ship = function () {
             bullet.vel.x = 6 * vectorx + this.vel.x;
             bullet.vel.y = 6 * vectory + this.vel.y;
             bullet.visible = true;
-            bullet.fref = firebaseRefGame.child('bullets').push({
+            bullet.fref = wilddogRefGame.child('bullets').push({
               s: myship.key(),
               x: bullet.x,
               y: bullet.y,
@@ -622,7 +622,7 @@ Ship = function () {
       this.vel.y *= 0.95;
     }
 
-    // Write new ship location to Firebase on each key frame
+    // Write new ship location to Wilddog on each key frame
     if ((this.vel.rot !== this.previousKeyFrame.vel.rot) || (KEY_STATUS.up !== this.previousKeyFrame.accb)) {
       myship.set({
         ship: {
@@ -638,7 +638,7 @@ Ship = function () {
     }
     this.previousKeyFrame = { vel: { rot: this.vel.rot }, accb: KEY_STATUS.up };
 
-    // Write new ship location to Firebase about every 60 frames
+    // Write new ship location to Wilddog about every 60 frames
     this.keyFrame++;
     if (this.keyFrame % 60 == 0) {
       myship.set({
@@ -1293,16 +1293,16 @@ $(function () {
   };
 
   // Presence
-  var connectedRef = firebaseRef.child('.info/connected').on('value', function(snap) {
+  var connectedRef = wilddogRef.child('.info/connected').on('value', function(snap) {
     if (snap.val()) {
-      firebaseRef.child('.info/connected').off('value', connectedRef);
+      wilddogRef.child('.info/connected').off('value', connectedRef);
       mainLoop();
     }
   });  
 
 
-  // Sync enemy ships from Firebase to local game state
-  firebaseRefGame.child('players').on('child_added', function (snapshot) {
+  // Sync enemy ships from Wilddog to local game state
+  wilddogRefGame.child('players').on('child_added', function (snapshot) {
     if (snapshot.key() !== myship.key()) {
       var enemy = new EnemyShip();
       enemy.acc = snapshot.val().ship.acc;
@@ -1313,7 +1313,7 @@ $(function () {
       enemy.accb = snapshot.val().ship.accb;
       enemy.visible = true;
       enemy.user = snapshot.val().user;
-      enemy.fref = firebaseRefGame.child('players').child(snapshot.key());
+      enemy.fref = wilddogRefGame.child('players').child(snapshot.key());
       if (typeof(enemy.user.imageUrl) != undefined && enemy.user.imageUrl != null) {
         enemy.eimg = new Image();
         enemy.eimg.src = enemy.user.imageUrl;
@@ -1325,7 +1325,7 @@ $(function () {
     }
   });
 
-  firebaseRefGame.child('players').on('child_changed', function (snapshot) {
+  wilddogRefGame.child('players').on('child_changed', function (snapshot) {
     if (snapshot.key() !== myship.key()) {
       var enemy = Game.sprites[snapshot.key()];
       enemy.visible = true;
@@ -1336,7 +1336,7 @@ $(function () {
       enemy.rot = snapshot.val().ship.rot;
       enemy.accb = snapshot.val().ship.accb;
       enemy.user = snapshot.val().user;
-      enemy.fref = firebaseRefGame.child('players').child(snapshot.key());
+      enemy.fref = wilddogRefGame.child('players').child(snapshot.key());
       if (typeof(enemy.user.imageUrl) != undefined && enemy.user.imageUrl != null) {
         enemy.eimg = new Image();
         enemy.eimg.src = enemy.user.imageUrl;
@@ -1347,7 +1347,7 @@ $(function () {
     }
   });
 
-  firebaseRefGame.child('players').on('child_removed', function (snapshot) {
+  wilddogRefGame.child('players').on('child_removed', function (snapshot) {
     if (snapshot.key() !== myship.key()) {
       var enemy = Game.sprites[snapshot.key()];
       enemy.visible = false;
@@ -1359,8 +1359,8 @@ $(function () {
   });
 
 
-  // Sync enemy bullets from Firebase to local game state
-  firebaseRefGame.child('bullets').on('child_added', function (snapshot) {
+  // Sync enemy bullets from Wilddog to local game state
+  wilddogRefGame.child('bullets').on('child_added', function (snapshot) {
     var bullet = snapshot.val();
     if (bullet.s !== myship.key()) {
       var enemybullet = new EnemyBullet();
@@ -1368,12 +1368,12 @@ $(function () {
       enemybullet.y = bullet.y;
       enemybullet.vel = bullet.vel;
       enemybullet.visible = true;
-      enemybullet.fref = firebaseRefGame.child('bullets').child(snapshot.key());
+      enemybullet.fref = wilddogRefGame.child('bullets').child(snapshot.key());
       Game.sprites['bullet:' + snapshot.key()] = enemybullet;
     }
   });
 
-  firebaseRefGame.child('bullets').on('child_removed', function (snapshot) {
+  wilddogRefGame.child('bullets').on('child_removed', function (snapshot) {
     var bullet = snapshot.val();
     if (bullet.s !== myship.key()) {
       var enemybullet = Game.sprites['bullet:' + snapshot.key()];
