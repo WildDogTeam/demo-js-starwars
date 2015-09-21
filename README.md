@@ -1,10 +1,10 @@
-# HTML5-Asteroids
+# HTML5-太空大战
 
-Pure Javascript Multiplayer Asteroids.
+一个用javascript实现的太空大战多人实时对战游戏
 
-## Multiplayer powered by Firebase
+## 基于Wilddog的多人游戏
 
-Based on the original version by @dmcinnes, we added some Firebase love and made it multiplayer!  And, along the way... eh, actually, removed the asteroids. You get the point :)
+基于Firebase和@dmcinnes HTML5-Asteroids 示例
 
-[Live Demo](https://mmoasteroids.firebaseapp.com/)
+[演示地址](https://fly.wilddogapp.com/)
 
