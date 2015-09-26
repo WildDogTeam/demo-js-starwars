@@ -4,7 +4,7 @@
 
 ## 基于Wilddog的多人游戏
 
-基于Firebase和@dmcinnes HTML5-Asteroids 示例
+基于Firebase和@dmcinnes HTML5-Asteroids 示例更改
 
-[演示地址](http://fly.wilddogapp.com/){:target="_blank"}
-
+ 
+<a href="http://fly.wilddogapp.com">在线演示</a>
