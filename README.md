@@ -6,5 +6,5 @@
 
 基于Firebase和@dmcinnes HTML5-Asteroids 示例
 
-[演示地址](http://fly.wilddogapp.com/)
+[演示地址](http://fly.wilddogapp.com/){:target="_blank"}
 
