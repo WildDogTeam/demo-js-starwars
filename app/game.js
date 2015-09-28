@@ -79,8 +79,8 @@ wilddogRef.onAuth(function(authData) {
       imageUrl: null
     };
     if(authData.provider == "weixin") {
-      currentUser.name = authData.twitter.username;
-      currentUser.imageUrl =  authData.twitter.cachedUserProfile.profile_image_url_https;
+      currentUser.name = authData.weixin.username;
+      currentUser.imageUrl =  authData.weixin.cachedUserProfile.headimgurl;
 
       // Cache the user image so we don't need to do this processing for every draw loop
       currentUserCachedImage = new Image();
