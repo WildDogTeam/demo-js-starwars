@@ -61,7 +61,7 @@ var GRID_SIZE = 60;
 var LEADERBOARD_SIZE = 10;
 
 // Wilddog connection Stuff
-var wilddogRef = new Wilddog("https://mmoasteroids.wilddogio.com/");
+var wilddogRef = new Wilddog("https://starwars.wilddogio.com/");
 var wilddogRefGame = wilddogRef.child('game');
 var wilddogRefLeaderboard = wilddogRef.child('leaderboard');
 
