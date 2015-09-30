@@ -64,4 +64,4 @@ demo-js-starwars is built on and with the aid of several  projects. We would lik
 Open Source:
 
 * [HTML5-Asteroids](https://github.com/dmcinnes/HTML5-Asteroids) A Pure Javascript Asteroids Game.
-* [JQuery](query.com) The Write Less, Do More, JavaScript Library.
+* [JQuery](http://jquery.com) The Write Less, Do More, JavaScript Library.
