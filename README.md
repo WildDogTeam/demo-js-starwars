@@ -1,16 +1,3 @@
-# HTML5-太空大战
-
-一个用javascript实现的太空大战多人实时对战游戏
-
-## 基于Wilddog的多人游戏
-
-基于Firebase和@dmcinnes HTML5-Asteroids 示例更改
-
- 
-<a href="http://fly.wilddogapp.com">在线演示</a>
-
-
-
 # demo-js-starwars HTML5-太空大战
 
 demo-js-starwars 是一个基于wilddog JavaScript SDK实现的多人实时对战游戏。可以匿名对战，也可以使用微信账号登陆，以便于在积分排行榜上留名。
