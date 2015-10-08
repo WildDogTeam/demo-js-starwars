@@ -3,9 +3,10 @@
 demo-js-starwars 是一个基于wilddog JavaScript SDK实现的多人实时对战游戏。可以匿名对战，也可以使用微信账号登陆，以便于在积分排行榜上留名。
 
 ## 在线示例
-http://starwars.wilddogapp.com/
-[![一个demo页面的快照](starwars.png)](http://starwars.wilddogapp.com/)
 
+http://starwars.wilddogapp.com/
+
+[![一个demo页面的快照](starwars.png)](http://starwars.wilddogapp.com/)
 
 ## 本地运行
 
