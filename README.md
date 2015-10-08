@@ -8,6 +8,7 @@ http://starwars.wilddogapp.com/
 
 [![一个demo页面的快照](starwars.png)](http://starwars.wilddogapp.com/)
 
+
 ## 本地运行
 
 可以直接用浏览器访问index.html。但是本地file://的方式只能匿名游戏，无法进行微信账号登陆。
