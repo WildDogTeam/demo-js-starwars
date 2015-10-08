@@ -4,7 +4,7 @@ demo-js-starwars 是一个基于wilddog JavaScript SDK实现的多人实时对�
 
 ## 在线示例
 http://starwars.wilddogapp.com/
-
+[![一个demo页面的快照](starwars.png)](http://starwars.wilddogapp.com/)
 
 
 ## 本地运行
