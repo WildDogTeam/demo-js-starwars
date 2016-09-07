@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="asteroids.css">
-  <script src="https://cdn.wilddog.com/js/client/current/wilddog.js"></script>
+  <script src = "https://cdn.wilddog.com/sdk/js/2.0.0/wilddog-sync.js" ></script>
+  <script src = "https://cdn.wilddog.com/sdk/js/2.0.0/wilddog-auth.js" ></script>
   <script src="http://libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
   <script src="assets/vector_battle_regular.typeface.js"></script>
   <script src="anchor.js"></script>
@@ -16,46 +17,46 @@
   <div id="header-pane">
     <div id="header-left">
       <span>多人太空大战 &nbsp; </span>
-    <div id="header-right">
-      <span id="my-name"></span>: <span id="my-score"></span>
-      <span id="login"><a href="javascript:void(0);">微信登录</a></span>
-    </div>
-  </div>
-  <div id="game-pane">
-    <div id="game-container">
-      <div id="left-controls">
-        <div id="up" class='button'>⬆</div>
-        <div id="left" class='button'>⬅</div>
-        <div id="right" class='button'>➡</div>
+      <div id="header-right">
+        <span id="my-name"></span>: <span id="my-score"></span>
+        <span id="login"><a href="javascript:void(0);">微信登录</a></span>
       </div>
-      <div id="right-controls">
-        <div id="space" class='button'>Fire</div>
+    </div>
+    <div id="game-pane">
+      <div id="game-container">
+        <div id="left-controls">
+          <div id="up" class='button'>⬆</div>
+          <div id="left" class='button'>⬅</div>
+          <div id="right" class='button'>➡</div>
+        </div>
+        <div id="right-controls">
+          <div id="space" class='button'>Fire</div>
+        </div>
+        <canvas id="canvas" width="1000" height="700"></canvas>
       </div>
-      <canvas id="canvas" width="1000" height="700"></canvas>
+    </div>
+    <div id="footer-pane">
+      <div class="footer-col">
+        <h3>介绍</h3>
+        <ul>
+          <li>一个多人版的太空大战游戏</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>控制</h3>
+        <ul>
+          <li>⬅ ⬆ ➡ [空格发射子弹]</li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>英雄榜</h3>
+        <table id="leaderboardTable"></table>
+      </div>
+      <div class="footer-col">
+        <h3>Powered By</h3>
+        <a href="https://www.wilddog.com/">Wilddog<br>
+      </div>
     </div>
   </div>
-  <div id="footer-pane">
-    <div class="footer-col">
-      <h3>介绍</h3>
-	<ul>
-		<li>一个多人版的太空大战游戏</li>
-	</ul>
-    </div>
-    <div class="footer-col">
-      <h3>控制</h3>
-      <ul>
-        <li>⬅ ⬆ ➡ [空格发射子弹]</li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h3>英雄榜</h3>
-      <table id="leaderboardTable"></table>
-    </div>
-    <div class="footer-col">
-      <h3>Powered By</h3>
-      <a href="https://www.wilddog.com/">Wilddog<br>
-    </div>
-  </div>
-</div>
 </body>
 </html>

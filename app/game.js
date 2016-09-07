@@ -1,24 +1,24 @@
 /*
-   Copyright (c) 2010 Doug McInnes
+ Copyright (c) 2010 Doug McInnes
 
-   Permission is hereby granted, free of charge, to any person obtaining a copy
-   of this software and associated documentation files (the "Software"), to deal
-   in the Software without restriction, including without limitation the rights
-   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-   copies of the Software, and to permit persons to whom the Software is
-   furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-   The above copyright notice and this permission notice shall be included in
-   all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    
-   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN      
-   THE SOFTWARE.
-*/
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
 
 //TODO - Anonymous users should have persistent names across visits
 //TODO - add touch controls for mobile
@@ -50,37 +50,44 @@ var STARTING_LIVES = 4;
 var CANVAS_WIDTH = 1000;
 var CANVAS_HEIGHT = 700;
 /**
- * The grid sized, used to speed up collision maths. 
+ * The grid sized, used to speed up collision maths.
  * Too small = missed collisions
  * Too big = too slow
  */
 var GRID_SIZE = 60;
 /**
- * How many leaders to display 
+ * How many leaders to display
  */
 var LEADERBOARD_SIZE = 10;
 
 // Wilddog connection Stuff
-var wilddogRef = new Wilddog("https://starwars.wilddogio.com/");
+
+var config = {
+  authDomain:"starwars.wilddog.com",
+  syncURL: "https://starwars.wilddogio.com"
+};
+wilddog.initializeApp(config);
+var wilddogRef = wilddog.sync().ref();
+//var wilddogRef = new Wilddog("https://starwars.wilddogio.com/");
 var wilddogRefGame = wilddogRef.child('game');
 var wilddogRefLeaderboard = wilddogRef.child('leaderboard');
 
 var currentUser = null;
 var currentUserCachedImage = null;
 
-// User login
-wilddogRef.onAuth(function(authData) {
-  if(authData) {
+
+wilddog.auth().onAuthStateChanged(function (user) {
+  if(user) {
     // User logged in
     currentUser = {
-      uid: authData.uid,
-      type: authData.provider,
+      uid: user.uid,
+      type: user.providerId,
       name: "Guest " + Math.floor(10000 * Math.random()),
       imageUrl: null
     };
-    if(authData.provider == "weixin") {
-      currentUser.name = authData.weixin.username;
-      currentUser.imageUrl =  authData.weixin.cachedUserProfile.headimgurl;
+    if(user.provider == "weixin") {
+      currentUser.name = user.weixin.username;
+      currentUser.imageUrl =  user.weixin.cachedUserProfile.headimgurl;
 
       // Cache the user image so we don't need to do this processing for every draw loop
       currentUserCachedImage = new Image();
@@ -89,17 +96,21 @@ wilddogRef.onAuth(function(authData) {
   } else {
     // User logged out
     currentUser = null;
-    
+
     // If they're not authenticated, auth them anonymously
-    wilddogRef.authAnonymously(function(error, authData) {
-      if (error) {
-        console.log("Anonymous login Failed!", error);
-      }
-    });
+    wilddog.auth().signInAnonymously().then(function (result){
+      console.info("signInAnouymously success", result)
+    }).catch(function(err){
+      console.info("signInAnouymously failed",err)
+    })
   }
-  
   updateDisplayName(currentUser);
 });
+
+// User login
+//wilddogRef.onAuth(function(authData) {
+//
+//});
 
 function updateDisplayName(currentUser) {
   if(currentUser) {
@@ -122,10 +133,11 @@ $(document).ready(function() {
   }
 
   $("#login").click(function() {
-    wilddogRef.authWithOAuthPopup("weixin", function(error, authData) {
-      if (error) {
-        console.log("Twitter login Failed!", error);
-      }
+    var provider = new wilddog.auth.WeixinAuthProvider();
+    wilddog.auth().signInWithPopup(provider).then(function (result) {
+      console.log(result);
+    }).catch(function (error) {
+      console.log(error);
     });
   });
 });
@@ -165,33 +177,33 @@ var scoreListRef = wilddogRefLeaderboard.child('scoreList');
 var htmlForPath = {};
 
 function handleScoreAdded(scoreSnapshot, lowerScoreName) {
-	var newScoreRow = $("<tr/>");
-	var postedScore = scoreSnapshot.val();
-	if(postedScore.user.type == 'twitter') {
-	  newScoreRow.append($("<td/>")
+  var newScoreRow = $("<tr/>");
+  var postedScore = scoreSnapshot.val();
+  if(postedScore.user.type == 'twitter') {
+    newScoreRow.append($("<td/>")
         .append('<img class="leaderboardImage" src="' + postedScore.user.imageUrl + '">')
         .append($("<strong/>").text('@' + postedScore.user.name)));
-	  newScoreRow.append($("<td/>").text(postedScore.score));
-	} else {
-	  newScoreRow.append($("<td/>").append($("<strong/>").text(postedScore.user.name)));
-	  newScoreRow.append($("<td/>").text(postedScore.score));
-	}
+    newScoreRow.append($("<td/>").text(postedScore.score));
+  } else {
+    newScoreRow.append($("<td/>").append($("<strong/>").text(postedScore.user.name)));
+    newScoreRow.append($("<td/>").text(postedScore.score));
+  }
 
-	// Store a reference to the table row so we can get it again later.
-	htmlForPath[scoreSnapshot.key()] = newScoreRow;
+  // Store a reference to the table row so we can get it again later.
+  htmlForPath[scoreSnapshot.key()] = newScoreRow;
 
-	// Insert the new score in the appropriate place in the GUI.
-	if (lowerScoreName === null) {
-		$("#leaderboardTable").append(newScoreRow);
-    
+  // Insert the new score in the appropriate place in the GUI.
+  if (lowerScoreName === null) {
+    $("#leaderboardTable").append(newScoreRow);
+
     // If the Twitter account is gone, remove the broken photo
     $(".leaderboardImage").error(function () {
       $(this).remove();
     });
   } else {
-		var lowerScoreRow = htmlForPath[lowerScoreName];
-		lowerScoreRow.before(newScoreRow);
-	}
+    var lowerScoreRow = htmlForPath[lowerScoreName];
+    lowerScoreRow.before(newScoreRow);
+  }
 }
 
 // User a query to get the top scores
@@ -203,17 +215,17 @@ scoreListView.on('child_added', function (newScoreSnapshot, prevScoreName) {
 
 
 function setScore(score) {
-   Game.score = score;
-   updateScore();
+  Game.score = score;
+  updateScore();
 }
 
 function deltaScore(score) {
-   Game.score += score;
-   updateScore();
+  Game.score += score;
+  updateScore();
 }
 
 function updateScore() {
-     $("#my-score").html(Game.score);
+  $("#my-score").html(Game.score);
 }
 
 // Rendering stuff
@@ -230,7 +242,7 @@ Matrix = function (rows, columns) {
     var sin = Math.sin(rad) * scale;
     var cos = Math.cos(rad) * scale;
     this.set(cos, -sin, transx,
-             sin,  cos, transy);
+        sin,  cos, transy);
   };
 
   this.set = function () {
@@ -258,7 +270,7 @@ Matrix = function (rows, columns) {
 // The game pieces (sprites)
 
 /**
- * Sprite: ships, bullets, and all other things inherit behavior from here 
+ * Sprite: ships, bullets, and all other things inherit behavior from here
  */
 Sprite = function () {
   this.init = function (name, points) {
@@ -433,7 +445,7 @@ Sprite = function () {
     this.context.strokeStyle = this.strokeStyle;
 
     if(this.eimg != null) {
-        this.context.drawImage(this.eimg, 0, 0, 20, 20);
+      this.context.drawImage(this.eimg, 0, 0, 20, 20);
     }
 
     this.context.stroke();
@@ -464,8 +476,8 @@ Sprite = function () {
   };
   this.checkCollision = function (other) {
     if (!other.visible ||
-         this == other ||
-         this.collidesWith.indexOf(other.name) == -1) return;
+        this == other ||
+        this.collidesWith.indexOf(other.name) == -1) return;
     var trans = other.transformedPoints();
     var px, py;
     var count = trans.length/2;
@@ -514,14 +526,14 @@ Sprite = function () {
       cn = this.grid[gridx][gridy];
     }
     return (cn.isEmpty(this.collidesWith) &&
-            cn.north.isEmpty(this.collidesWith) &&
-            cn.south.isEmpty(this.collidesWith) &&
-            cn.east.isEmpty(this.collidesWith) &&
-            cn.west.isEmpty(this.collidesWith) &&
-            cn.north.east.isEmpty(this.collidesWith) &&
-            cn.north.west.isEmpty(this.collidesWith) &&
-            cn.south.east.isEmpty(this.collidesWith) &&
-            cn.south.west.isEmpty(this.collidesWith));
+    cn.north.isEmpty(this.collidesWith) &&
+    cn.south.isEmpty(this.collidesWith) &&
+    cn.east.isEmpty(this.collidesWith) &&
+    cn.west.isEmpty(this.collidesWith) &&
+    cn.north.east.isEmpty(this.collidesWith) &&
+    cn.north.west.isEmpty(this.collidesWith) &&
+    cn.south.east.isEmpty(this.collidesWith) &&
+    cn.south.west.isEmpty(this.collidesWith));
   };
   this.wrapPostMove = function () {
     if (this.x > Game.canvasWidth) {
@@ -542,17 +554,17 @@ Sprite = function () {
  */
 Ship = function () {
   this.init("ship",
-            [-5,   4,
-              0, -12,
-              5,   4]);
+      [-5,   4,
+        0, -12,
+        5,   4]);
 
   this.scale = 1.5;
   this.children.exhaust = new Sprite();
   this.children.exhaust.strokeStyle = "#ff0000";
   this.children.exhaust.init("exhaust",
-                             [-3,  6,
-                               0, 11,
-                               3,  6]);
+      [-3,  6,
+        0, 11,
+        3,  6]);
 
   this.bulletCounter = 0;
   this.strokeStyle = "#ffff00";
@@ -587,7 +599,7 @@ Ship = function () {
     if (this.bulletCounter > 0) {
       this.bulletCounter -= delta;
     }
-    
+
     if (KEY_STATUS.space) {
       if (this.bulletCounter <= 0) {
         this.bulletCounter = BULLET_DELAY;
@@ -643,13 +655,13 @@ Ship = function () {
     if (this.keyFrame % 60 == 0) {
       myship.set({
         ship: {
-          acc: this.acc, 
-          vel: this.vel, 
-          x: this.x, 
-          y: this.y, 
-          rot: this.rot, 
-          accb: KEY_STATUS.up 
-        }, 
+          acc: this.acc,
+          vel: this.vel,
+          x: this.x,
+          y: this.y,
+          rot: this.rot,
+          accb: KEY_STATUS.up
+        },
         user: currentUser
       });
     }
@@ -669,7 +681,7 @@ Ship = function () {
     }
     this.currentNode = null;
     Game.lives--;
-    if (other != null && other.name == "enemyship") 
+    if (other != null && other.name == "enemyship")
       deltaScore(Math.floor(100 * Math.random()));
   };
 
@@ -708,16 +720,16 @@ Ship.prototype = new Sprite();
  */
 EnemyShip = function () {
   this.init("enemyship",
-            [-5,   4,
-              0, -12,
-              5,   4]);
+      [-5,   4,
+        0, -12,
+        5,   4]);
 
   this.children.exhaust = new Sprite();
   this.children.exhaust.strokeStyle = "#ff0000";
   this.children.exhaust.init("exhaust",
-                             [-3,  6,
-                               0, 11,
-                               3,  6]);
+      [-3,  6,
+        0, 11,
+        3,  6]);
 
   this.scale = 1.5;
   this.bulletCounter = 0;
@@ -763,12 +775,12 @@ EnemyShip = function () {
       var rad = ((this.rot-90) * Math.PI)/180;
       this.acc.x = 0.5 * Math.cos(rad);
       this.acc.y = 0.5 * Math.sin(rad);
-       this.children.exhaust.visible = Math.random() > 0.1;
+      this.children.exhaust.visible = Math.random() > 0.1;
     }
     else {
-       this.acc.x = 0;
-       this.acc.y = 0;
-       this.children.exhaust.visible = false;
+      this.acc.x = 0;
+      this.acc.y = 0;
+      this.children.exhaust.visible = false;
     }
   };
 
@@ -1070,9 +1082,9 @@ Game = {
   // Finite state machine of game progression
   FSM: {
     boot: function () {
-        KEY_STATUS.space = false; // hack so we don't shoot right away
-        window.gameStart = false;
-        this.state = 'start';
+      KEY_STATUS.space = false; // hack so we don't shoot right away
+      window.gameStart = false;
+      this.state = 'start';
     },
     start: function () {
       for (sprite in Game.sprites) {
@@ -1224,13 +1236,13 @@ $(function () {
   // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
   window.requestAnimFrame = (function () {
     return  window.requestAnimationFrame       ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame    ||
-            window.oRequestAnimationFrame      ||
-            window.msRequestAnimationFrame     ||
-            function (/* function */ callback, /* DOMElement */ element) {
-              window.setTimeout(callback, 1000 / 60);
-            };
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function (/* function */ callback, /* DOMElement */ element) {
+          window.setTimeout(callback, 1000 / 60);
+        };
   })();
 
   var mainLoop = function () {
@@ -1298,7 +1310,7 @@ $(function () {
       wilddogRef.child('.info/connected').off('value', connectedRef);
       mainLoop();
     }
-  });  
+  });
 
 
   // Sync enemy ships from Wilddog to local game state
